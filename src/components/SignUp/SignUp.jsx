@@ -1,8 +1,13 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import { auth } from "../../firebase.init";
 import { useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { FaEyeLowVision } from "react-icons/fa6";
+import { Link } from "react-router-dom";
 
 const SignUp = () => {
   const [success, setSuccess] = useState(null);
@@ -14,7 +19,9 @@ const SignUp = () => {
     const email = event.target.email.value;
     const password = event.target.password.value;
     const terms = event.target.terms.checked;
-    console.log(email, password, terms);
+    const name = event.target.name.value;
+    const photo = event.target.photo.value;
+    console.log(email, password, terms, name, photo);
 
     //* reset error and status
     setErrorMessage("");
@@ -45,6 +52,22 @@ const SignUp = () => {
       .then((result) => {
         console.log(result.user);
         setSuccess(true);
+
+        //* sent verification email address
+        sendEmailVerification(auth.currentUser).then(() => {
+          console.log("verification email send");
+        });
+
+        //* update profile name and photo URL
+        const profile = {
+          displayName: name,
+          photoURL: photo,
+        };
+        updateProfile(auth.currentUser, profile)
+          .then(() => {
+            console.log("user profile updated");
+          })
+          .catch((error) => console.log("user profile updated..."));
       })
       .catch((error) => {
         console.log(error.message, "ERROR");
@@ -59,6 +82,30 @@ const SignUp = () => {
       <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
         <h2 className="text-center text-2xl font-semibold">Sign Up Now!</h2>
         <form onSubmit={handleSignUp} className="card-body">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Name</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              className="input input-bordered"
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Photo</span>
+            </label>
+            <input
+              type="text"
+              name="photo"
+              placeholder="Photo URL"
+              className="input input-bordered"
+              required
+            />
+          </div>
           <div className="form-control">
             <label className="label">
               <span className="label-text">Email</span>
@@ -110,6 +157,11 @@ const SignUp = () => {
         {success && (
           <p className="text-green-600">Hurrah!! Sign Up is Successful</p>
         )}
+        {
+          <p className="m-2">
+            Already have an account? Please <Link to="/login">Login</Link>
+          </p>
+        }
       </div>
     </div>
   );
